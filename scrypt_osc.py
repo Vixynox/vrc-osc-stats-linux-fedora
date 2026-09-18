@@ -5,15 +5,13 @@ import subprocess
 from datetime import datetime
 from pythonosc import udp_client
 
-# VRChat OSC IP and Port
 IP = "127.0.0.1"
 PORT = 9000
 client = udp_client.SimpleUDPClient(IP, PORT)
 
-# Nazwy podzespołów i systemu
-OS_NAME = "Fedora 44"
-CPU_NAME = "R5 3600"
-GPU_NAME = "RX 6600XT"
+OS_NAME = "YOUR OS"
+CPU_NAME = "YOUR CPU"
+GPU_NAME = "YOUR GPU"
 
 def get_amd_gpu_usage():
     try:
@@ -63,7 +61,6 @@ while True:
     
     current_time = datetime.now().strftime("%I:%M %p")
 
-    # Formatowanie z przywróconą nazwą "Fedora 44"
     banner = f"{current_time} | 💻 {OS_NAME}"
     line2 = f"🧠 {CPU_NAME}: {cpu_usage}% {cpu_temp} | ⚙️ {GPU_NAME}: {gpu_usage}% {gpu_temp}"
     line3 = f"💾 RAM: {ram_used}/{ram_total} GB"
@@ -73,7 +70,6 @@ while True:
     if song:
         prefix = "\n🎧 Listening to:\n🎵 "
         
-        # Wyliczamy miejsce na piosenkę (limit 144 znaki)
         chars_left = 144 - len(msg) - len(prefix)
         
         if chars_left > 5 and len(song) > chars_left:
