@@ -15,57 +15,49 @@ Tested on Fedora Linux. Ensure you have the required dependencies installed:
 ```bash
 pip install psutil python-osc
 sudo dnf install playerctl
-
+```
 
 ## 🚀 Installation & Usage
-⚠️ Important: VRChat & Steam Configuration
+
+### ⚠️ Important: VRChat & Steam Configuration
 Before the script can display stats on your avatar, you must allow VRChat to receive local network data:
+1. **Restart Steam** completely (this ensures no background processes are blocking the 9000 network port).
+2. Launch VRChat.
+3. Open your in-game **Action Menu** (Radial Menu).
+4. Navigate to **Options** ➔ **OSC** ➔ and set it to **Enabled**.
 
-## Restart Steam completely (this ensures no background processes are blocking the 9000 network port).
-
-## Launch VRChat.
-
-## Open your in-game Action Menu (Radial Menu).
-
-## Navigate to Options ➔ OSC ➔ and set it to Enabled.
-
-## Option A: Steam Launch Options (Auto-start with VRChat)
+### Option A: Steam Launch Options (Auto-start with VRChat)
 You can trigger the script automatically when launching VRChat through Steam by modifying the game's launch options. Add this line:
-
-Bash
+```bash
 ~/vrc-osc-stats/start_with_game.sh %command%
+```
 
-## Option B: Native System Service (systemd)
+### Option B: Native System Service (systemd)
 For a fully seamless background experience without keeping terminal windows open, run the telemetry as a native Linux user service.
 
-## Create the systemd user directory and copy the service file:
-
-Bash
+1. Create the systemd user directory and copy the service file:
+```bash
 mkdir -p ~/.config/systemd/user/
 cp ~/vrc-osc-stats/vrc-osc.service ~/.config/systemd/user/
+```
 
-## Reload the systemd manager configuration:
-
-Bash
+2. Reload the systemd manager configuration:
+```bash
 systemctl --user daemon-reload
-Start the telemetry service:
+```
 
-Bash
+3. Start the telemetry service:
+```bash
 systemctl --user start vrc-osc.service
-(Optional) Enable the service to start automatically upon system login:
+```
 
-Bash
+4. (Optional) Enable the service to start automatically upon system login:
+```bash
 systemctl --user enable vrc-osc.service
+```
 
 ## 🛑 Stopping the Service
 If you need to stop the background service, simply run:
-
-Bash
-systemctl --user stop vrc-osc.service
-
-## 3. Click the green **Commit changes...** button.
-4. To sync this final fix back to your local Fedora PC, run this in your terminal:
-
 ```bash
-cd ~/vrc-osc-stats
-git pull
+systemctl --user stop vrc-osc.service
+```
