@@ -24,19 +24,19 @@ def get_cpu_name():
             for line in f:
                 if 'model name' in line:
                     name = line.split(':')[1].strip()
-                    # Shorten the name for readability in VRChat
                     name = name.replace("AMD ", "").replace(" 6-Core Processor", "")
                     return name[:15]
     except:
         return "CPU"
 
 def get_gpu_name():
-    # NVIDIA
+    # Priority 1: NVIDIA
     try:
         out = subprocess.check_output(["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"], stderr=subprocess.DEVNULL).decode('utf-8').strip()
         if out: return out.replace("NVIDIA GeForce ", "")[:15]
     except: pass
-    # AMD
+    
+    # Priority 2: AMD
     try:
         out = subprocess.check_output("lspci | grep -i vga", shell=True, stderr=subprocess.DEVNULL).decode('utf-8').strip()
         if "Radeon" in out or "AMD" in out:
@@ -46,28 +46,44 @@ def get_gpu_name():
     return "GPU"
 
 def get_gpu_usage():
-    # Check for AMD cards
+    # Priority 1: Check for NVIDIA cards first (Bypasses AMD integrated graphics bug)
+    try:
+        out = subprocess.check_output(["nvidia-smi", "--query-gpu=utilization.gpu", "--format=csv,noheader,nounits"], stderr=subprocess.DEVNULL).decode('utf-8').strip()
+        if out: return out
+    except: pass
+
+    # Priority 2: Check for AMD cards (For full-AMD systems)
     try:
         for card in ['card0', 'card1', 'card2']:
             path = f"/sys/class/drm/{card}/device/gpu_busy_percent"
             if os.path.exists(path):
                 with open(path, 'r') as f:
-                    return f.read().strip()
+                    usage = f.read().strip()
+                    if usage: return usage
     except: pass
     
-    # Check for NVIDIA cards
-    try:
-        out = subprocess.check_output(["nvidia-smi", "--query-gpu=utilization.gpu", "--format=csv,noheader,nounits"], stderr=subprocess.DEVNULL).decode('utf-8').strip()
-        return out if out else "N/A"
-    except: return "N/A"
+    return "N/A"
 
 def get_temps():
     cpu_t, gpu_t = "", ""
+    
+    # CPU Temp
     try:
         temps = psutil.sensors_temperatures()
         if 'k10temp' in temps: cpu_t = f"{int(temps['k10temp'][0].current)}°C"
-        if 'amdgpu' in temps: gpu_t = f"{int(temps['amdgpu'][0].current)}°C"
+        elif 'coretemp' in temps: cpu_t = f"{int(temps['coretemp'][0].current)}°C"
     except: pass
+
+    # GPU Temp - NVIDIA Priority
+    try:
+        nv_temp = subprocess.check_output(["nvidia-smi", "--query-gpu=temperature.gpu", "--format=csv,noheader"], stderr=subprocess.DEVNULL).decode('utf-8').strip()
+        if nv_temp: gpu_t = f"{nv_temp}°C"
+    except:
+        # GPU Temp - AMD Fallback
+        try:
+            if 'amdgpu' in temps: gpu_t = f"{int(temps['amdgpu'][0].current)}°C"
+        except: pass
+        
     return cpu_t, gpu_t
 
 def get_uptime():
@@ -86,7 +102,6 @@ def get_spotify():
 
 print("Sending stats to VRChat Chatbox... (Press Ctrl+C to stop)")
 
-# Initialize hardware names once so we don't query the system every 2 seconds
 OS_NAME = get_os_name()
 CPU_NAME = get_cpu_name()
 GPU_NAME = get_gpu_name()
